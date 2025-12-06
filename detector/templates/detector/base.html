@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Fake News Detector{% endblock %}</title>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+        crossorigin="anonymous"
+    >
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #0f172a; /* dark slate */
+            color: #e5e7eb;
+        }
+        .app-shell {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar-glass {
+            background: linear-gradient(90deg, #0f172a, #1f2937);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+        }
+        .navbar-brand span {
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+        .nav-link {
+            color: #e5e7eb !important;
+            opacity: 0.8;
+        }
+        .nav-link.active, .nav-link:hover {
+            opacity: 1;
+        }
+        main {
+            flex: 1;
+        }
+        .card {
+            border-radius: 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 55%),
+                        radial-gradient(circle at bottom right, rgba(129, 140, 248, 0.08), transparent 55%),
+                        #020617;
+            color: #e5e7eb;
+        }
+        .card-header {
+            border-bottom-color: rgba(148, 163, 184, 0.4);
+        }
+        textarea.form-control {
+            background-color: #020617;
+            border-color: rgba(148, 163, 184, 0.6);
+            color: #e5e7eb;
+        }
+        textarea.form-control:focus {
+            background-color: #020617;
+            color: #e5e7eb;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.25);
+        }
+        .table-dark-soft {
+    --bs-table-bg: #0b1220; /* background of table rows */
+    --bs-table-color: #e5e7eb; /* default row text */
+    --bs-table-striped-bg: #111827; /* subtle striping */
+    --bs-table-striped-color: #e5e7eb;
+    --bs-table-border-color: rgba(148, 163, 184, 0.25);
+    --bs-table-hover-bg: #1e293b; /* slightly brighter on hover */
+    --bs-table-hover-color: #f1f5f9;
+}
+
+.table-dark-soft thead th {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(148,163,184,0.4);
+}
+
+.table-dark-soft tbody td {
+    color: #e5e7eb !important;
+}
+
+.table-dark-soft tbody tr:hover td {
+    color: #f1f5f9 !important;
+}
+
+        footer {
+            border-top: 1px solid rgba(148, 163, 184, 0.3);
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<div class="app-shell">
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-glass sticky-top">
+        <div class="container py-2">
+            <a class="navbar-brand d-flex align-items-center gap-2 text-light" href="{% url 'home' %}">
+                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle">ML</span>
+                <span>Fake News Detector</span>
+            </a>
+            <button
+                class="navbar-toggler text-light border-0"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#mainNavbar"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+    {% if user.is_authenticated %}
+        <li class="nav-item">
+            <a class="nav-link {% if request.path == '/' %}active fw-semibold{% endif %}"
+               href="{% url 'home' %}">
+                Home
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if '/history' in request.path %}active fw-semibold{% endif %}"
+               href="{% url 'history' %}">
+                My History
+            </a>
+        </li>
+        {% if user.is_staff %}
+            <li class="nav-item">
+                <a class="nav-link {% if '/users' in request.path %}active fw-semibold{% endif %}"
+                   href="{% url 'users_list' %}">
+                    Users
+                </a>
+            </li>
+        {% endif %}
+    {% endif %}
+</ul>
+
+                <div class="d-flex align-items-center gap-3 text-light">
+                    {% if user.is_authenticated %}
+                        <span class="small text-secondary">Hi, <strong>{{ user.username }}</strong> 👋</span>
+                        <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">
+                            Logout
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm me-2">Login</a>
+                        <a href="{% url 'register' %}" class="btn btn-info btn-sm text-dark">Sign up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="container py-4 py-md-5">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="py-3 text-center text-secondary small">
+        Built with Django & Transformers • {{ request.get_host }}
+    </footer>
+</div>
+
+<!-- Bootstrap JS -->
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"
+></script>
+
+</body>
+</html>

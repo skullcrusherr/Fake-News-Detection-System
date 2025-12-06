@@ -1,0 +1,176 @@
+{% extends "detector/base.html" %}
+{% block title %}Home • Fake News Detector{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Left: form + prediction -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">Check a news item</h5>
+                    <small class="text-secondary">Paste a headline or short article below</small>
+                </div>
+                <span class="badge bg-info-subtle text-info-emphasis">Transformer-based</span>
+            </div>
+            <div class="card-body">
+                <form method="post" class="d-flex flex-column gap-3">
+                    {% csrf_token %}
+                    <div>
+                        <textarea
+                            id="news_text"
+                            name="news_text"
+                            rows="6"
+                            class="form-control"
+                            placeholder="e.g. Elon Musk buys Google for $3 trillion and plans to merge it with Twitter."
+                        >{{ user_text }}</textarea>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="submit" class="btn btn-info text-dark px-4">
+                            Analyse
+                        </button>
+                        <small class="text-secondary">
+                            Model outputs REAL / FAKE / UNSURE with confidence.
+                        </small>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if prediction %}
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">Prediction</h5>
+                        {% if prediction == 'REAL' %}
+                            <span class="badge bg-success-subtle text-success-emphasis">REAL</span>
+                        {% elif prediction == 'FAKE' %}
+                            <span class="badge bg-danger-subtle text-danger-emphasis">FAKE</span>
+                        {% else %}
+                            <span class="badge bg-warning-subtle text-warning-emphasis">UNSURE</span>
+                        {% endif %}
+                    </div>
+
+                    {% if probabilities %}
+                        <p class="mb-2 text-secondary small">
+                            Model confidence:
+                        </p>
+                        <div class="row">
+                            {% for cls, prob in probabilities.items %}
+                                <div class="col-6 col-md-4 mb-2">
+                                    <div class="border rounded-3 p-2 text-center bg-opacity-10
+                                        {% if cls == 'REAL' %}border-success text-success{% else %}border-danger text-danger{% endif %}">
+                                        <div class="small text-uppercase">{{ cls }}</div>
+                                        <div class="fw-semibold">{{ prob|floatformat:3 }}</div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <p class="mt-3 mb-0 text-secondary small">
+                        ⚠ This tool uses machine learning trained on multiple fake/real news datasets.
+                        It can still be wrong. Use it as a helper, not as a final verdict—
+                        especially for health, finance, or high-impact decisions.
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Right: stats + recent -->
+    <div class="col-lg-5">
+        {% if total_predictions %}
+            <div class="card shadow-sm mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">Overall prediction stats</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2 small text-secondary">
+                        Total predictions made across all users:
+                    </p>
+                    <h3 class="fw-semibold mb-3">{{ total_predictions }}</h3>
+                    <div class="d-flex justify-content-center mb-3">
+                        <canvas id="predictionPie" style="max-width:260px;"></canvas>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 justify-content-center small">
+                        <span class="badge rounded-pill bg-success-subtle text-success-emphasis">
+                            REAL: {{ real_count }}
+                        </span>
+                        <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis">
+                            FAKE: {{ fake_count }}
+                        </span>
+                        <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis">
+                            UNSURE: {{ unsure_count }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                (function() {
+                    const ctx = document.getElementById('predictionPie');
+                    if (!ctx) return;
+                    new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['REAL', 'FAKE', 'UNSURE'],
+                            datasets: [{
+                                data: [{{ real_count }}, {{ fake_count }}, {{ unsure_count }}],
+                            }]
+                        },
+                    });
+                })();
+            </script>
+        {% endif %}
+
+        {% if recent_logs %}
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">My recent checks</h6>
+                    <a href="{% url 'history' %}" class="small text-info text-decoration-none">
+                        View all →
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-dark-soft mb-0 align-middle">
+                            <thead>
+                                <tr>
+                                    <th class="px-3">Time</th>
+                                    <th>Text</th>
+                                    <th class="px-3 text-end">Label</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in recent_logs %}
+                                    <tr>
+                                        <td class="px-3 text-nowrap small">
+                                            {{ log.created_at|date:"Y-m-d H:i" }}
+                                        </td>
+                                        <td class="small">
+                                            {{ log.short_text }}
+                                        </td>
+                                        <td class="px-3 text-end">
+                                            <span class="badge
+                                                {% if log.label == 'REAL' %}
+                                                    bg-success-subtle text-success-emphasis
+                                                {% elif log.label == 'FAKE' %}
+                                                    bg-danger-subtle text-danger-emphasis
+                                                {% else %}
+                                                    bg-warning-subtle text-warning-emphasis
+                                                {% endif %}">
+                                                {{ log.label }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

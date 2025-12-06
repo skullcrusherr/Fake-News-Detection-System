@@ -1,0 +1,62 @@
+{% extends "detector/base.html" %}
+{% block title %}My History • Fake News Detector{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-0">My prediction history</h3>
+        <small class="text-secondary">All predictions made under your account</small>
+    </div>
+    <a href="{% url 'home' %}" class="btn btn-outline-info btn-sm">
+        ← Back to home
+    </a>
+</div>
+
+{% if logs %}
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark-soft table-striped mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th class="px-3">Time</th>
+                            <th>Text</th>
+                            <th>Label</th>
+                            <th class="text-end pe-3">REAL p</th>
+                            <th class="text-end pe-3">FAKE p</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                            <tr>
+                                <td class="px-3 text-nowrap small">
+                                    {{ log.created_at|date:"Y-m-d H:i" }}
+                                </td>
+                                <td class="small">{{ log.short_text }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if log.label == 'REAL' %}bg-success-subtle text-success-emphasis
+                                        {% elif log.label == 'FAKE' %}bg-danger-subtle text-danger-emphasis
+                                        {% else %}bg-warning-subtle text-warning-emphasis{% endif %}">
+                                        {{ log.label }}
+                                    </span>
+                                </td>
+                                <td class="text-end pe-3 small">
+                                    {% if log.real_prob %}{{ log.real_prob|floatformat:3 }}{% else %}-{% endif %}
+                                </td>
+                                <td class="text-end pe-3 small">
+                                    {% if log.fake_prob %}{{ log.fake_prob|floatformat:3 }}{% else %}-{% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-secondary">
+        You haven’t made any predictions yet. Go to the <a href="{% url 'home' %}">home page</a> and try the model!
+    </div>
+{% endif %}
+{% endblock %}
