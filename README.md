@@ -1,162 +1,174 @@
 # 📰 Fake News Detection System (Transformer-Based + Django Web App)
 
-This project is an end-to-end **Fake News Classification System** built using:
+A complete end-to-end Fake News Detection system built using **DistilBERT Transformers** for NLP and **Django** for the web interface.  
+The system classifies news as **REAL**, **FAKE**, or **UNSURE**, provides confidence scores, tracks user prediction history, and includes a responsive dark-themed dashboard.
 
-- **DistilBERT Transformer (Fine-Tuned)**
-- **Multi-dataset training (Kaggle, GossipCop, Politifact, Bharat Fake News Kosh, etc.)**
-- **Django Web Application**
-- **User Authentication (Register/Login/Logout)**
-- **History Tracking & Dashboard Pie Charts**
-- **Responsive UI with Bootstrap 5 (Dark Theme)**
-
-The system allows users to submit a news headline or short article and returns:
-✔ **REAL / FAKE / UNSURE**  
-✔ Prediction probabilities  
-✔ Logged user history  
-✔ Admin-only user stats  
+This project demonstrates practical Machine Learning + Full Stack development for academic and real-world applications.
 
 ---
 
 ## 🚀 Features
 
-### 🔹 **1. Transformer-Based Model (DistilBERT)**
-- Fine-tuned on merged datasets from Kaggle, GossipCop, Politifact, and Bharat Fake News Kosh  
-- Robust classification capability  
-- Outputs prediction + confidence  
+### 🔹 Transformer-Based Fake News Classifier
+- Fine-tuned **DistilBERT** model  
+- Trained on multiple datasets:
+  - Kaggle Fake/Real
+  - Fake_Real.csv
+  - GossipCop Fake/Real
+  - Politifact Fake/Real
+  - Bharat Fake News Kosh (Excel)  
+- Outputs: **REAL / FAKE / UNSURE**  
+- Provides probability scores
 
-### 🔹 **2. Full Django Web App**
-- User registration and login  
-- Styled dark-mode UI with Bootstrap 5  
-- Prediction form with real-time results  
-- Pie chart visualization using Chart.js  
-- Per-user prediction history  
-- Admin-only users list  
-- Logging of predictions into database  
+### 🔹 Full Django Web Application
+- User Registration / Login / Logout  
+- News input form to test model  
+- History page showing all predictions  
+- Admin-only list of all users  
+- Responsive modern UI with Bootstrap 5  
+- Chart.js Pie chart showing prediction stats  
 
-### 🔹 **3. Clean Project Architecture**
-datasets → preprocessing → DistilBERT fine-tuning → saved model → Django → web interface
-
-yaml
-Copy code
-
-### 🔹 **4. Database Logging**
-Every prediction is stored with:
-- Text
-- Label (REAL / FAKE / UNSURE)
-- Probabilities
-- Timestamp
-- User account reference
-
----
-
-## 📊 System Architecture (Block Diagram)
-
-Below is the project workflow diagram used in the report:
-
-![System Flow](A_flowchart-style_diagram_with_a_dark_gray_backgro.png)
+### 🔹 Database Logging
+Each prediction stores:
+- News text  
+- Prediction label  
+- REAL probability  
+- FAKE probability  
+- Timestamp  
+- User reference  
 
 ---
 
-## 📦 Project Structure
+## 📊 System Architecture Diagram
 
+A high-quality block diagram (PNG) explaining the system flow:
+
+```
+Datasets (Fake.csv, True.csv, Politifact, GossipCop, Bharat Fake News Kosh)
+        ↓
+Data Preprocessing & Cleaning
+        ↓
+DistilBERT Fine-Tuning (Transformer Training)
+        ↓
+Saved Transformer Model (HuggingFace format)
+        ↓
+Django Web App
+    ├── Login / Register / Logout
+    ├── Prediction Form
+    ├── Transformer Inference Engine
+    ├── Save Predictions to Database
+    └── Dashboard Analytics (Pie Chart)
+```
+
+*(Place your PNG diagram here once uploaded into the repository.)*
+
+---
+
+## 📁 Project Structure
+
+```
 fake_news_detection/
 │
-├── dataset/ # All CSV and XLSX datasets
-├── ml/ # Training & inference scripts
-│ ├── train_transformer.py
-│ ├── train_transformer_multi.py
-│ ├── transformer_inference.py
-│ └── saved_models/
+├── dataset/                    # All CSV/XLSX files (tracked via Git LFS)
+├── ml/                         # Training & inference scripts
+│   ├── train_transformer.py
+│   ├── train_transformer_multi.py
+│   ├── transformer_inference.py
+│   └── saved_models/           # Fine-tuned DistilBERT (Git LFS)
 │
-├── detector/ # Django app
-│ ├── models.py # PredictionLog model
-│ ├── views.py # All views
-│ ├── urls.py
-│ ├── templates/
-│ │ ├── base.html
-│ │ ├── home.html
-│ │ ├── history.html
-│ │ ├── login.html
-│ │ ├── register.html
-│ │ └── users_list.html
-│ └── templatetags/
-│ └── form_tags.py # Custom Django filter
+├── detector/                   # Django application
+│   ├── models.py               # PredictionLog model
+│   ├── views.py                # Web logic
+│   ├── urls.py
+│   ├── templates/              # HTML templates (Bootstrap Dark UI)
+│   │   ├── base.html
+│   │   ├── home.html
+│   │   ├── history.html
+│   │   ├── login.html
+│   │   ├── register.html
+│   │   └── users_list.html
+│   └── templatetags/
+│       └── form_tags.py        # Custom django tag for styling form fields
 │
-├── fake_news_site/ # Django project settings
-│ ├── settings.py
-│ ├── urls.py
-│ └── asgi/wsgi.py
+├── fake_news_site/             # Django site config
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi/asgi.py
 │
-├── manage.py
-└── README.md
-
-yaml
-Copy code
+└── manage.py
+```
 
 ---
 
 ## 🧠 Model Training Overview
 
-### Datasets Used:
-- **Fake.csv / True.csv (Kaggle)**
-- **Fake_Real.csv**
-- **GossipCop Fake / Real**
-- **Politifact Fake / Real**
-- **Bharat Fake News Kosh**
+### 1️⃣ Datasets Used
+- Fake.csv / True.csv  
+- Fake_Real.csv  
+- GossipCop Fake / Real  
+- Politifact Fake / Real  
+- Bharat Fake News Kosh (Excel)
 
-### Training Pipeline:
-1. Merge & clean datasets  
-2. Tokenize using `distilbert-base-uncased` tokenizer  
-3. Fine-tune for 4 epochs  
-4. Achieved **96.2% validation accuracy**  
-5. Exported as Transformers model directory  
-
----
-
-## 🌐 Web Application Screenshots
-
-### ✔ Prediction Interface  
--(Dark themed, Bootstrap 5)
-
-### ✔ History Dashboard  
--With probabilities & timestamps
-
-### ✔ Users List (Admin Only)
-
-*(You can add screenshots here once uploaded)*
+### 2️⃣ ML Pipeline
+- Clean & merge datasets  
+- Tokenize using `distilbert-base-uncased`  
+- Train with HuggingFace Trainer  
+- Evaluate accuracy & F1  
+- Save model to `saved_models/`
 
 ---
 
-## 🛠 Installation & Setup
+## 💻 Running the Project
 
-### 1️⃣ Clone the repository
+### 1. Clone the Repository
 ```bash
--git clone https://github.com/skullcrusherr/Fake-News-Detection-System
--cd fake-news-detector
-2️⃣ Create a virtual environment
--bash
--Copy code
--python3 -m venv .venv
--source .venv/bin/activate
-3️⃣ Install dependencies
--bash
--Copy code
--pip install -r requirements.txt
-4️⃣ Apply migrations
--bash
--Copy code
--python manage.py makemigrations
--python manage.py migrate
-5️⃣ Run the development server
--bash
--Copy code
--python manage.py runserver
-6️⃣ Access in browser
--👉 http://127.0.0.1:8000/
+git clone https://github.com/<your-username>/<repo-name>.git
+cd <repo-name>
+```
 
-🔒 Authentication
--Users must log in to make predictions
+### 2. Create & Activate Virtual Environment
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
--Each prediction is logged with user data
+### 3. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
 
--Admins can view all registered users
+### 4. Apply Migrations
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+### 5. Run the Server
+```bash
+python manage.py runserver
+```
+
+Open the app at:
+👉 http://127.0.0.1:8000/
+
+---
+
+## 👨‍💻 Authentication
+
+| Role | Permissions |
+|------|-------------|
+| **User** | Make predictions, view personal history |
+| **Admin** | View ALL users and their prediction counts |
+
+Passwords are securely hashed by Django.
+
+---
+
+## 📈 Dashboard & Visualizations
+
+- Pie chart showing total REAL / FAKE / UNSURE predictions  
+- Latest prediction history table  
+- Time-stamped logs  
+- User-wise statistics  
+
+---
