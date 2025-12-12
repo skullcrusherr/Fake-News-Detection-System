@@ -8,6 +8,10 @@ from django.contrib.auth import logout as auth_logout
 from .ml_model import predict_news
 from .models import PredictionLog
 
+from .forms import ImageUploadForm
+from .ocr_utils import extract_text_from_image
+from django.core.files.storage import default_storage
+
 
 @login_required
 def home(request):
@@ -89,3 +93,49 @@ User = get_user_model()
 def users_list(request):
     users = User.objects.all().order_by("username")
     return render(request, "detector/users_list.html", {"users": users})
+
+from django.core.files.storage import default_storage
+from django.conf import settings  # add this import
+
+@login_required
+def image_check(request):
+    prediction = None
+    probabilities = None
+    extracted_text = ""
+    uploaded_image_url = None
+    form = ImageUploadForm()
+
+    if request.method == "POST":
+        form = ImageUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            img_file = form.cleaned_data["image"]
+
+            saved_path = default_storage.save(f"uploads/{img_file.name}", img_file)
+            full_path = default_storage.path(saved_path)
+
+            # ✅ URL to show in template
+            uploaded_image_url = settings.MEDIA_URL + saved_path
+
+            extracted_text = extract_text_from_image(full_path)
+
+            if extracted_text.strip():
+                prediction, probabilities = predict_news(extracted_text)
+
+                real_p = probabilities.get("REAL") if probabilities else None
+                fake_p = probabilities.get("FAKE") if probabilities else None
+
+                PredictionLog.objects.create(
+                    user=request.user,
+                    text=extracted_text,
+                    label=prediction or "UNKNOWN",
+                    real_prob=real_p,
+                    fake_prob=fake_p,
+                )
+
+    return render(request, "detector/image_check.html", {
+        "form": form,
+        "prediction": prediction,
+        "probabilities": probabilities,
+        "extracted_text": extracted_text,
+        "uploaded_image_url": uploaded_image_url,  # ✅
+    })

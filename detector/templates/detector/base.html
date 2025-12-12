@@ -150,6 +150,10 @@
                 <div class="d-flex align-items-center gap-3 text-light">
                     {% if user.is_authenticated %}
                         <span class="small text-secondary">Hi, <strong>{{ user.username }}</strong> 👋</span>
+                        <a class="nav-link {% if '/image-check' in request.path %}active fw-semibold{% endif %}"
+   href="{% url 'image_check' %}">
+   Image Check
+</a>
                         <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">
                             Logout
                         </a>
@@ -166,6 +170,7 @@
     <main class="container py-4 py-md-5">
         {% block content %}{% endblock %}
     </main>
+   
 
     <!-- FOOTER -->
     <footer class="py-3 text-center text-secondary small">

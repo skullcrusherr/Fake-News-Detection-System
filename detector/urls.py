@@ -14,4 +14,7 @@ urlpatterns = [
 
     path("history/", views.history, name="history"),
     path("users/", views.users_list, name="users_list"),
+
+    path("image-check/", views.image_check, name="image_check"),
+
 ]
